@@ -160,7 +160,10 @@ export default function App() {
       }
 
       if (!audioData || !mimeType) {
-        throw new Error('音声データの取得に失敗しました（想定外のAPI応答）。');
+        console.error('Unexpected API response:', result);
+        const reason = candidate?.finishReason || result.promptFeedback?.blockReason;
+        const detail = reason ? `reason: ${reason}` : JSON.stringify(result).slice(0, 300);
+        throw new Error(`音声データの取得に失敗しました（想定外のAPI応答）。${detail}`);
       }
 
       let sampleRate = 24000;
