@@ -28,30 +28,46 @@ export default async function handler(req, res) {
     return;
   }
 
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+    },
+  };
+
+  const MAX_ATTEMPTS = 3;
+  let lastError;
+
   try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
-      },
-    };
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+      const data = await response.json();
 
-    const data = await response.json();
+      if (!response.ok) {
+        res.status(response.status).json({ error: data?.error?.message || 'Gemini API error' });
+        return;
+      }
 
-    if (!response.ok) {
-      res.status(response.status).json({ error: data?.error?.message || 'Gemini API error' });
-      return;
+      const hasAudio = data.candidates?.[0]?.content?.parts?.some(
+        (p) => p.inlineData?.mimeType?.startsWith('audio/')
+      );
+
+      if (hasAudio) {
+        res.status(200).json(data);
+        return;
+      }
+
+      lastError = data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || 'unknown';
     }
 
-    res.status(200).json(data);
+    res.status(502).json({ error: `Gemini returned no audio after ${MAX_ATTEMPTS} attempts (reason: ${lastError})` });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal error' });
   }
