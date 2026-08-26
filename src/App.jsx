@@ -129,34 +129,17 @@ export default function App() {
       : promptText;
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey) {
-        throw new Error('APIキーが設定されていません。.envファイルにVITE_GEMINI_API_KEYを設定してください。');
-      }
-
-      const payload = {
-        contents: [{ parts: [{ text: modifiedPrompt }] }],
-        generationConfig: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
-          },
-        },
-      };
-
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ prompt: modifiedPrompt, voice }),
       });
 
       if (!response.ok) {
         let detail = `${response.status} ${response.statusText}`;
         try {
           const errBody = await response.json();
-          if (errBody?.error?.message) detail = errBody.error.message;
+          if (errBody?.error) detail = errBody.error;
         } catch {
           // ignore parse failure, use status text
         }
