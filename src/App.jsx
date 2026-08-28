@@ -383,7 +383,7 @@ export default function App() {
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full h-full min-h-[300px] border border-gray-300 rounded-xl p-4 text-gray-800 text-base leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50 resize-y"
+                className="w-full h-full min-h-[300px] border border-gray-300 rounded-xl p-4 text-gray-800 text-sm leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50 resize-y"
                 placeholder={
                   activeTab === 'multi'
                     ? `${speakers[0]?.name || 'Speaker1'}: こんにちは、お元気ですか？\n${speakers[1]?.name || 'Speaker2'}: はい、元気です。あなたは？`
