@@ -4,6 +4,7 @@ import { Mic, Download, Play, Square, Settings2, MessageSquare, Wand2, Volume2, 
 const VOICES = ['Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede'];
 const STYLES = ['指定なし', '明るい', '落ち着いた', 'エネルギッシュな', '悲しい', '怒った'];
 const PACES = ['指定なし', 'ゆっくり', '普通', '速く'];
+const MAX_PROMPT_LENGTH = 5000;
 
 function base64ToArrayBuffer(base64) {
   const binaryString = window.atob(base64);
@@ -378,7 +379,7 @@ export default function App() {
               <h2 className="font-medium text-gray-700">読み上げるテキスト</h2>
             </div>
 
-            <div className="flex-1 p-5">
+            <div className="flex-1 p-5 relative">
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -389,6 +390,11 @@ export default function App() {
                     : 'ここに読み上げるテキストを入力してください...'
                 }
               />
+              <span
+                className={`absolute top-8 right-8 text-xs pointer-events-none select-none ${text.length > MAX_PROMPT_LENGTH ? 'text-red-400' : 'text-gray-300'}`}
+              >
+                {text.length} / {MAX_PROMPT_LENGTH}
+              </span>
             </div>
 
             <div className="p-5 border-t border-gray-100 bg-gray-50/50 rounded-b-xl flex flex-col gap-4">
