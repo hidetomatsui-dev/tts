@@ -1,4 +1,10 @@
-const VOICES = ['Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede'];
+const VOICES = [
+  'Achernar', 'Achird', 'Algenib', 'Algieba', 'Alnilam', 'Aoede', 'Autonoe',
+  'Callirrhoe', 'Charon', 'Despina', 'Enceladus', 'Erinome', 'Fenrir', 'Gacrux',
+  'Iapetus', 'Kore', 'Laomedeia', 'Leda', 'Orus', 'Puck', 'Pulcherrima',
+  'Rasalgethi', 'Sadachbia', 'Sadaltager', 'Schedar', 'Sulafat', 'Umbriel',
+  'Vindemiatrix', 'Zephyr', 'Zubenelgenubi',
+];
 const MAX_PROMPT_LENGTH = 5000;
 const MAX_SPEAKERS = 2;
 

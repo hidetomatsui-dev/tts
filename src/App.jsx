@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Download, Play, Square, Settings2, MessageSquare, Wand2, Volume2, User, Users } from 'lucide-react';
 
-const VOICES = ['Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede'];
+const VOICES = [
+  'Achernar', 'Achird', 'Algenib', 'Algieba', 'Alnilam', 'Aoede', 'Autonoe',
+  'Callirrhoe', 'Charon', 'Despina', 'Enceladus', 'Erinome', 'Fenrir', 'Gacrux',
+  'Iapetus', 'Kore', 'Laomedeia', 'Leda', 'Orus', 'Puck', 'Pulcherrima',
+  'Rasalgethi', 'Sadachbia', 'Sadaltager', 'Schedar', 'Sulafat', 'Umbriel',
+  'Vindemiatrix', 'Zephyr', 'Zubenelgenubi',
+];
 const STYLES = ['指定なし', '明るい', '落ち着いた', 'エネルギッシュな', '悲しい', '怒った'];
 const PACES = ['指定なし', 'ゆっくり', '普通', '速く'];
 const MAX_PROMPT_LENGTH = 5000;
