@@ -1,5 +1,6 @@
 const VOICES = ['Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede'];
 const MAX_PROMPT_LENGTH = 5000;
+const MAX_SPEAKERS = 2;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { prompt, voice } = req.body || {};
+  const { prompt, voice, mode, speakers } = req.body || {};
 
   if (typeof prompt !== 'string' || !prompt.trim()) {
     res.status(400).json({ error: 'prompt is required' });
@@ -23,9 +24,44 @@ export default async function handler(req, res) {
     res.status(400).json({ error: `prompt must be ${MAX_PROMPT_LENGTH} characters or fewer` });
     return;
   }
-  if (!VOICES.includes(voice)) {
-    res.status(400).json({ error: `voice must be one of: ${VOICES.join(', ')}` });
-    return;
+
+  let speechConfig;
+
+  if (mode === 'multi') {
+    if (!Array.isArray(speakers) || speakers.length < 1 || speakers.length > MAX_SPEAKERS) {
+      res.status(400).json({ error: `speakers must be an array of 1-${MAX_SPEAKERS} entries` });
+      return;
+    }
+    for (const s of speakers) {
+      if (typeof s?.name !== 'string' || !s.name.trim()) {
+        res.status(400).json({ error: 'each speaker requires a name' });
+        return;
+      }
+      if (!VOICES.includes(s.voice)) {
+        res.status(400).json({ error: `voice must be one of: ${VOICES.join(', ')}` });
+        return;
+      }
+    }
+    const names = speakers.map((s) => s.name.trim());
+    if (new Set(names).size !== names.length) {
+      res.status(400).json({ error: 'speaker names must be unique' });
+      return;
+    }
+
+    speechConfig = {
+      multiSpeakerVoiceConfig: {
+        speakerVoiceConfigs: speakers.map((s) => ({
+          speaker: s.name.trim(),
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: s.voice } },
+        })),
+      },
+    };
+  } else {
+    if (!VOICES.includes(voice)) {
+      res.status(400).json({ error: `voice must be one of: ${VOICES.join(', ')}` });
+      return;
+    }
+    speechConfig = { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } };
   }
 
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
@@ -33,7 +69,7 @@ export default async function handler(req, res) {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       responseModalities: ['AUDIO'],
-      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+      speechConfig,
     },
   };
 

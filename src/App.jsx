@@ -75,6 +75,10 @@ function pcmToMp3(pcmData, sampleRate) {
 export default function App() {
   const [activeTab, setActiveTab] = useState('single');
   const [voice, setVoice] = useState('Kore');
+  const [speakers, setSpeakers] = useState([
+    { name: 'Speaker1', voice: 'Kore' },
+    { name: 'Speaker2', voice: 'Puck' },
+  ]);
   const [style, setStyle] = useState('指定なし');
   const [pace, setPace] = useState('指定なし');
   const [scene, setScene] = useState('');
@@ -124,15 +128,21 @@ export default function App() {
     if (scene) instructions.push(`場面: ${scene}`);
     if (context) instructions.push(`背景/感情: ${context}`);
 
+    const isMulti = activeTab === 'multi';
+    const introPrefix = isMulti ? '以下の会話を' : '以下を';
     const modifiedPrompt = instructions.length > 0
-      ? `以下を${instructions.join('、')}読んでください:\n\n${promptText}`
+      ? `${introPrefix}${instructions.join('、')}読んでください:\n\n${promptText}`
       : promptText;
+
+    const requestBody = isMulti
+      ? { prompt: modifiedPrompt, mode: 'multi', speakers }
+      : { prompt: modifiedPrompt, voice };
 
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: modifiedPrompt, voice }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -235,10 +245,10 @@ export default function App() {
               <User size={16} /> シングルスピーカー
             </button>
             <button
-              className="flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm font-medium text-gray-300 cursor-not-allowed"
-              disabled
+              className={`flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors ${activeTab === 'multi' ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'}`}
+              onClick={() => setActiveTab('multi')}
             >
-              <Users size={16} /> マルチスピーカー (準備中)
+              <Users size={16} /> マルチスピーカー
             </button>
           </div>
 
@@ -248,21 +258,60 @@ export default function App() {
               <h2>音声設定</h2>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">スピーカー (AI音声)</label>
-                <select
-                  value={voice}
-                  onChange={(e) => setVoice(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-gray-50"
-                >
-                  {VOICES.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-2">※ Geminiの高音質モデルを使用して生成されます。</p>
+            {activeTab === 'single' ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">スピーカー (AI音声)</label>
+                  <select
+                    value={voice}
+                    onChange={(e) => setVoice(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-gray-50"
+                  >
+                    {VOICES.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-2">※ Geminiの高音質モデルを使用して生成されます。</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {speakers.map((sp, i) => (
+                  <div key={i} className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">話者{i + 1}の名前</label>
+                      <input
+                        type="text"
+                        value={sp.name}
+                        onChange={(e) => {
+                          const next = [...speakers];
+                          next[i] = { ...next[i], name: e.target.value };
+                          setSpeakers(next);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">声</label>
+                      <select
+                        value={sp.voice}
+                        onChange={(e) => {
+                          const next = [...speakers];
+                          next[i] = { ...next[i], voice: e.target.value };
+                          setSpeakers(next);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50"
+                      >
+                        {VOICES.map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-gray-400">※ テキスト内の話者名（例: {speakers[0]?.name}:）とここで設定した名前を一致させてください。最大2名まで対応しています。</p>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
@@ -334,7 +383,11 @@ export default function App() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full h-full min-h-[300px] border border-gray-300 rounded-xl p-4 text-gray-800 text-base leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50 resize-y"
-                placeholder="ここに読み上げるテキストを入力してください..."
+                placeholder={
+                  activeTab === 'multi'
+                    ? `${speakers[0]?.name || 'Speaker1'}: こんにちは、お元気ですか？\n${speakers[1]?.name || 'Speaker2'}: はい、元気です。あなたは？`
+                    : 'ここに読み上げるテキストを入力してください...'
+                }
               />
             </div>
 
@@ -389,7 +442,9 @@ export default function App() {
                     </button>
                     <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Volume2 size={16} className="text-gray-400" />
-                      {voice}の音声が生成されました
+                      {activeTab === 'multi'
+                        ? `${speakers.map((s) => s.name).join(' / ')}の音声が生成されました`
+                        : `${voice}の音声が生成されました`}
                     </div>
                   </div>
 
