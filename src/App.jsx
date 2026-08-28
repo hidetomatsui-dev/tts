@@ -8,6 +8,18 @@ const VOICES = [
   'Rasalgethi', 'Sadachbia', 'Sadaltager', 'Schedar', 'Sulafat', 'Umbriel',
   'Vindemiatrix', 'Zephyr', 'Zubenelgenubi',
 ];
+
+// Google公式ドキュメントの声質特徴ラベル（性別分類はGemini APIに存在しないため未使用）
+const VOICE_STYLES = {
+  Zephyr: 'Bright', Puck: 'Upbeat', Charon: 'Informative', Kore: 'Firm',
+  Fenrir: 'Excitable', Leda: 'Youthful', Orus: 'Firm', Aoede: 'Breezy',
+  Callirrhoe: 'Easy-going', Autonoe: 'Bright', Enceladus: 'Breathy', Iapetus: 'Clear',
+  Umbriel: 'Easy-going', Algieba: 'Smooth', Despina: 'Smooth', Erinome: 'Clear',
+  Algenib: 'Gravelly', Rasalgethi: 'Informative', Laomedeia: 'Upbeat', Achernar: 'Soft',
+  Alnilam: 'Firm', Schedar: 'Even', Gacrux: 'Mature', Pulcherrima: 'Forward',
+  Achird: 'Friendly', Zubenelgenubi: 'Casual', Vindemiatrix: 'Gentle', Sadachbia: 'Lively',
+  Sadaltager: 'Knowledgeable', Sulafat: 'Warm',
+};
 const STYLES = ['指定なし', '明るい', '落ち着いた', 'エネルギッシュな', '悲しい', '怒った'];
 const PACES = ['指定なし', 'ゆっくり', '普通', '速く'];
 const MAX_PROMPT_LENGTH = 5000;
@@ -275,7 +287,7 @@ export default function App() {
                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-gray-50"
                   >
                     {VOICES.map((v) => (
-                      <option key={v} value={v}>{v}</option>
+                      <option key={v} value={v}>{v} ({VOICE_STYLES[v]})</option>
                     ))}
                   </select>
                   <p className="text-xs text-gray-400 mt-2">※ Geminiの高音質モデルを使用して生成されます。</p>
@@ -310,7 +322,7 @@ export default function App() {
                         className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-gray-50"
                       >
                         {VOICES.map((v) => (
-                          <option key={v} value={v}>{v}</option>
+                          <option key={v} value={v}>{v} ({VOICE_STYLES[v]})</option>
                         ))}
                       </select>
                     </div>
